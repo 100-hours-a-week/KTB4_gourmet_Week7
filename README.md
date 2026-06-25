@@ -3,25 +3,6 @@
 Spring Boot + JPA + Vanilla JavaScript를 사용해 구현한 커뮤니티 서비스 과제입니다.
 회원, 게시글, 댓글, 좋아요, 이미지 업로드 기능을 구현하고 Fetch API를 사용해 프론트엔드와 백엔드를 연결했습니다.
 
-## 기술 스택
-
-### Backend
-
-* Java 21
-* Spring Boot
-* Spring Data JPA
-* H2 Database
-* Lombok
-* Gradle
-
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-* Fetch API
-* Live Server
-
 ## 프로젝트 구조
 
 ```text
