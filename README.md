@@ -205,27 +205,4 @@ DB에는 이미지 파일의 접근 경로만 저장합니다.
 | `edit-profile.html`  | 회원정보 수정 |
 | `edit-password.html` | 비밀번호 수정 |
 
-## 참고 사항
-
-H2 Memory Database를 사용하기 때문에 백엔드 서버를 재시작하면 DB 데이터가 초기화됩니다.
-
-브라우저의 localStorage는 서버 재시작 후에도 유지되므로, 테스트 중 사용자 정보가 맞지 않을 경우 localStorage를 초기화한 뒤 다시 로그인해야 합니다.
-
-브라우저 콘솔에서 다음 명령어로 localStorage를 초기화할 수 있습니다.
-
-```javascript
-localStorage.clear();
-window.location.href = "./login.html";
-```
-
-업로드된 이미지 파일은 Git에 포함하지 않는 것을 권장합니다.
-
-`.gitignore` 예시:
-
-```gitignore
-uploads/
-build/
-.gradle/
-.idea/
-*.iml
 ```
