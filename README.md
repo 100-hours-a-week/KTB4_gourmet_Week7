@@ -373,27 +373,4 @@ DTO와 Controller에서 입력값 검증을 적용했습니다.
 
 추후 물리 삭제와 Soft Delete 중 하나의 정책으로 일관되게 정리할 예정입니다.
 
-## 참고 사항
-
-H2 Memory Database를 사용하기 때문에 백엔드 서버를 재시작하면 DB 데이터가 초기화됩니다.
-
-브라우저의 localStorage는 서버 재시작 후에도 유지되므로, 테스트 중 사용자 정보가 맞지 않을 경우 localStorage를 초기화한 뒤 다시 로그인해야 합니다.
-
-브라우저 콘솔에서 다음 명령어로 localStorage를 초기화할 수 있습니다.
-
-```javascript
-localStorage.clear();
-window.location.href = "./login.html";
-```
-
-업로드된 이미지 파일은 Git에 포함하지 않는 것을 권장합니다.
-
-`.gitignore` 예시:
-
-```gitignore
-uploads/
-build/
-.gradle/
-.idea/
-*.iml
 ```
