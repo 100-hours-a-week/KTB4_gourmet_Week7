@@ -165,8 +165,22 @@ signupForm.addEventListener("submit", async function (event) {
                 return null;
             });
 
-            console.log("회원가입 실패:", errorData);
-            emailHelper.textContent = "* 회원가입에 실패했습니다. 입력값을 확인해주세요.";
+            const errorMessage = errorData?.message ?? "회원가입에 실패했습니다.";
+
+            emailHelper.textContent = "";
+            nicknameHelper.textContent = "";
+
+            if (errorMessage.includes("이메일")) {
+                emailHelper.textContent = `* ${errorMessage}`;
+                return;
+            }
+
+            if (errorMessage.includes("닉네임")) {
+                nicknameHelper.textContent = `* ${errorMessage}`;
+                return;
+            }
+
+            emailHelper.textContent = `* ${errorMessage}`;
             return;
         }
 

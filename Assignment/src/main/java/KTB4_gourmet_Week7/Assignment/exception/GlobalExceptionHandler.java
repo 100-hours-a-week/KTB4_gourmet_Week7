@@ -55,6 +55,15 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateNicknameException(DuplicateNicknameException e) {
+        ErrorResponse response = new ErrorResponse(HttpStatus.CONFLICT, e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult()

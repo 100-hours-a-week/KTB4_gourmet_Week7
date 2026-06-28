@@ -1,10 +1,12 @@
 package KTB4_gourmet_Week7.Assignment.controller;
 
 import KTB4_gourmet_Week7.Assignment.dto.PostCreateRequestDto;
+import KTB4_gourmet_Week7.Assignment.dto.PostPageResponseDto;
 import KTB4_gourmet_Week7.Assignment.dto.PostResponseDto;
 import KTB4_gourmet_Week7.Assignment.dto.PostUpdateRequestDto;
 import KTB4_gourmet_Week7.Assignment.service.PostService;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,15 +19,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostController {
 
-
     private final PostService postService;
 
     @PostMapping(value = "/users/{userId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public PostResponseDto createPost(
             @PathVariable Long userId,
-            @RequestParam String title,
-            @RequestParam String content,
+
+            @RequestParam
+            @NotBlank(message = "title is required")
+            @Size(max = 100, message = "title must be 100 characters or less")
+            String title,
+
+            @RequestParam
+            @NotBlank(message = "content is required")
+            @Size(max = 65535, message = "content must be 65535 characters or less")
+            String content,
+
             @RequestPart(required = false) List<MultipartFile> images
     ) {
         PostCreateRequestDto request = new PostCreateRequestDto(title, content);
@@ -34,7 +44,7 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public List<PostResponseDto> getPosts(
+    public PostPageResponseDto getPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -52,8 +62,17 @@ public class PostController {
     @PatchMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public PostResponseDto updatePost(
             @PathVariable Long postId,
-            @RequestParam String title,
-            @RequestParam String content,
+
+            @RequestParam
+            @NotBlank(message = "title is required")
+            @Size(max = 100, message = "title must be 100 characters or less")
+            String title,
+
+            @RequestParam
+            @NotBlank(message = "content is required")
+            @Size(max = 65535, message = "content must be 65535 characters or less")
+            String content,
+
             @RequestPart(required = false) List<MultipartFile> images
     ) {
         PostUpdateRequestDto request = new PostUpdateRequestDto(title, content);
@@ -66,5 +85,4 @@ public class PostController {
     public void deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
     }
-
 }

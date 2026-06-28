@@ -1,9 +1,11 @@
 package KTB4_gourmet_Week7.Assignment.service;
 
 import KTB4_gourmet_Week7.Assignment.dto.PostCreateRequestDto;
+import KTB4_gourmet_Week7.Assignment.dto.PostPageResponseDto;
 import KTB4_gourmet_Week7.Assignment.dto.PostResponseDto;
 import KTB4_gourmet_Week7.Assignment.dto.PostUpdateRequestDto;
 import KTB4_gourmet_Week7.Assignment.entity.Post;
+import KTB4_gourmet_Week7.Assignment.entity.PostImage;
 import KTB4_gourmet_Week7.Assignment.entity.PostView;
 import KTB4_gourmet_Week7.Assignment.entity.User;
 import KTB4_gourmet_Week7.Assignment.exception.PostNotFoundException;
@@ -14,14 +16,13 @@ import KTB4_gourmet_Week7.Assignment.repository.PostLikeRepository;
 import KTB4_gourmet_Week7.Assignment.repository.PostRepository;
 import KTB4_gourmet_Week7.Assignment.repository.PostViewRepository;
 import KTB4_gourmet_Week7.Assignment.repository.UserRepository;
-import KTB4_gourmet_Week7.Assignment.entity.PostImage;
-import org.springframework.web.multipart.MultipartFile;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -29,7 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostService {
-
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -84,18 +84,29 @@ public class PostService {
         return createPostResponseDto(savedPost);
     }
 
-    public List<PostResponseDto> getPosts(int page, int size) {
-        return postRepository.findAll(
-                        PageRequest.of(
-                                page,
-                                size,
-                                Sort.by(Sort.Direction.DESC, "createdAt")
-                        )
+    public PostPageResponseDto getPosts(int page, int size) {
+        Page<Post> postPage = postRepository.findAll(
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "createdAt")
                 )
-                .getContent()
+        );
+
+        List<PostResponseDto> content = postPage.getContent()
                 .stream()
                 .map(this::createPostResponseDto)
                 .toList();
+
+        return new PostPageResponseDto(
+                content,
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages(),
+                postPage.hasNext(),
+                postPage.hasPrevious()
+        );
     }
 
     @Transactional
@@ -141,14 +152,6 @@ public class PostService {
         return createPostResponseDto(post);
     }
 
-    private boolean hasUploadedImages(List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) {
-            return false;
-        }
-
-        return images.stream().anyMatch(image -> image != null && !image.isEmpty());
-    }
-
     @Transactional
     public void deletePost(Long postId) {
         Post post = findPostById(postId);
@@ -159,6 +162,14 @@ public class PostService {
         postViewRepository.deleteByPost_Id(postId);
 
         postRepository.delete(post);
+    }
+
+    private boolean hasUploadedImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return false;
+        }
+
+        return images.stream().anyMatch(image -> image != null && !image.isEmpty());
     }
 
     private Post findPostById(Long postId) {
@@ -193,11 +204,9 @@ public class PostService {
         List<String> imageUrls = postImageRepository
                 .findByPost_IdAndDeletedAtIsNullOrderBySortOrderAsc(post.getId())
                 .stream()
-                .map(postImage -> postImage.getImageUrl())
+                .map(PostImage::getImageUrl)
                 .toList();
 
         return new PostResponseDto(post, likeCount, commentCount, imageUrls);
     }
-
-
 }

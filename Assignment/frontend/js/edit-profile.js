@@ -214,8 +214,16 @@ try {
             return null;
         });
 
+        const errorMessage = errorData?.message ?? "회원정보 수정에 실패했습니다.";
+
         console.log("회원정보 수정 실패:", errorData);
-        nicknameHelper.textContent = "* 회원정보 수정에 실패했습니다.";
+
+        if (errorMessage.includes("닉네임")) {
+            nicknameHelper.textContent = `* ${errorMessage}`;
+            return;
+        }
+
+        nicknameHelper.textContent = `* ${errorMessage}`;
         return;
     }
 

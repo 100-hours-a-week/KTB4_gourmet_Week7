@@ -1,20 +1,25 @@
 package KTB4_gourmet_Week7.Assignment.service;
 
-import KTB4_gourmet_Week7.Assignment.dto.*;
-import KTB4_gourmet_Week7.Assignment.entity.Post;
+import KTB4_gourmet_Week7.Assignment.dto.LoginRequestDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserListResponseDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserPageResponseDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserPasswordUpdateRequestDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserResponseDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserSignupRequestDto;
+import KTB4_gourmet_Week7.Assignment.dto.UserUpdateRequestDto;
 import KTB4_gourmet_Week7.Assignment.entity.User;
 import KTB4_gourmet_Week7.Assignment.exception.DuplicateEmailException;
+import KTB4_gourmet_Week7.Assignment.exception.DuplicateNicknameException;
 import KTB4_gourmet_Week7.Assignment.exception.InvalidLoginException;
 import KTB4_gourmet_Week7.Assignment.exception.UserNotFoundException;
-import KTB4_gourmet_Week7.Assignment.repository.CommentRepository;
-import KTB4_gourmet_Week7.Assignment.repository.PostImageRepository;
-import KTB4_gourmet_Week7.Assignment.repository.PostLikeRepository;
-import KTB4_gourmet_Week7.Assignment.repository.PostRepository;
 import KTB4_gourmet_Week7.Assignment.repository.UserRepository;
-import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,6 +35,10 @@ public class UserService {
     public UserResponseDto signup(UserSignupRequestDto request, MultipartFile profileImage) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
+        }
+
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
         }
 
         String profileImageUrl = fileStorageService.saveFile(profileImage, "profile");
@@ -59,11 +68,29 @@ public class UserService {
         return new UserResponseDto(user);
     }
 
-    public List<UserResponseDto> getUsers() {
-        return userRepository.findAllByOrderByIdAsc()
+    public UserPageResponseDto getUsers(int page, int size) {
+        Page<User> userPage = userRepository.findAll(
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(Sort.Direction.ASC, "id")
+                )
+        );
+
+        List<UserListResponseDto> content = userPage.getContent()
                 .stream()
-                .map(UserResponseDto::new)
+                .map(UserListResponseDto::new)
                 .toList();
+
+        return new UserPageResponseDto(
+                content,
+                userPage.getNumber(),
+                userPage.getSize(),
+                userPage.getTotalElements(),
+                userPage.getTotalPages(),
+                userPage.hasNext(),
+                userPage.hasPrevious()
+        );
     }
 
     public UserResponseDto getUser(Long userId) {
@@ -75,6 +102,10 @@ public class UserService {
     @Transactional
     public UserResponseDto updateUser(Long userId, UserUpdateRequestDto request, MultipartFile profileImage) {
         User user = findUserById(userId);
+
+        if (userRepository.existsByNicknameAndIdNot(request.getNickname(), userId)) {
+            throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+        }
 
         user.update(request.getNickname());
 
@@ -89,8 +120,7 @@ public class UserService {
 
     @Transactional
     public UserResponseDto updatePassword(Long userId, UserPasswordUpdateRequestDto request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        User user = findUserById(userId);
 
         user.updatePassword(request.getPassword());
 
